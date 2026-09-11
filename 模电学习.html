@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模电学习 - 交互动画与练习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 20px 0 10px;
+        }
+
+        /* SVG 动画样式 */
+        .animation-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Quiz 样式 */
+        .quiz-question {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .quiz-question h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 12px 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .option.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .option.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+        }
+
+        .explanation {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3e0;
+            border-radius: 10px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 24px;
+            color: #667eea;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8eaf6, #f3e5f5);
+            border-radius: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        /* 图例 */
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        /* 知识点卡片 */
+        .card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 15px 0;
+        }
+
+        .card h4 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .tab { padding: 10px 16px; font-size: 14px; }
+            .section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 模电学习中心</h1>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showSection('animation1')">PN 结动画</button>
+            <button class="tab" onclick="showSection('animation2')">二极管特性</button>
+            <button class="tab" onclick="showSection('quiz')">章节练习</button>
+            <button class="tab" onclick="showSection('summary')">知识总结</button>
+        </div>
+
+        <!-- 第一部分：PN 结形成动画 -->
+        <div id="animation1" class="section active">
+            <h2>🎬 PN 结的形成过程</h2>
+            <p>点击按钮观看 PN 结形成的动态过程：</p>
+
+            <div class="animation-container">
+                <svg id="pn-junction-svg" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <!-- P 型半导体 -->
+                    <rect x="50" y="50" width="300" height="300" fill="#e3f2fd" stroke="#1565c0" stroke-width="2" rx="10"/>
+                    <text x="200" y="30" text-anchor="middle" font-size="20" fill="#1565c0" font-weight="bold">P 型半导体</text>
+
+                    <!-- N 型半导体 -->
+                    <rect x="450" y="50" width="300" height="300" fill="#fce4ec" stroke="#c62828" stroke-width="2" rx="10"/>
+                    <text x="600" y="30" text-anchor="middle" font-size="20" fill="#c62828" font-weight="bold">N 型半导体</text>
+
+                    <!-- P 型空穴 -->
+                    <g id="p-holes">
+                        <circle cx="120" cy="150" r="15" fill="#42a5f5" class="hole"/>
+                        <text x="120" y="155" text-anchor="middle" fill="white" font-weight="bold">+</text>
+
+                        <circle cx="180" cy="200" r="15" fill="#42a5f5" class="hole"/>
+                        <text x="180" y="205" text-anchor="middle" fill="white" font-weight="bold">+</text>
+
+                        <circle cx="140" cy="280" r="15" fill="#42a5f5" class="hole"/>
+                        <text x="140" y="285" text-anchor="middle" fill="white" font-weight="bold">+</text>
+
+                        <circle cx="220" cy="150" r="15" fill="#42a5f5" class="hole"/>
+                        <text x="220" y="155" text-anchor="middle" fill="white" font-weight="bold">+</text>
+
+                        <circle cx="260" cy="250" r="15" fill="#42a5f5" class="hole"/>
+                        <text x="260" y="255" text-anchor="middle" fill="white" font-weight="bold">+</text>
+                    </g>
+
+                    <!-- N 型电子 -->
+                    <g id="n-electrons">
+                        <circle cx="520" cy="150" r="15" fill="#ef5350" class="electron"/>
+                        <text x="520" y="155" text-anchor="middle" fill="white" font-weight="bold">-</text>
+
+                        <circle cx="580" cy="200" r="15" fill="#ef5350" class="electron"/>
+                        <text x="580" y="205" text-anchor="middle" fill="white" font-weight="bold">-</text>
+
+                        <circle cx="540" cy="280" r="15" fill="#ef5350" class="electron"/>
+                        <text x="540" y="285" text-anchor="middle" fill="white" font-weight="bold">-</text>
+
+                        <circle cx="620" cy="150" r="15" fill="#ef5350" class="electron"/>
+                        <text x="620" y="155" text-anchor="middle" fill="white" font-weight="bold">-</text>
+
+                        <circle cx="660" cy="250" r="15" fill="#ef5350" class="electron"/>
+                        <text x="660" y="255" text-anchor="middle" fill="white" font-weight="bold">-</text>
+                    </g>
+
+                    <!-- 耗尽层 -->
+                    <g id="depletion-layer" opacity="0">
+                        <rect x="350" y="50" width="100" height="300" fill="#fff3e0" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="400" y="200" text-anchor="middle" font-size="14" fill="#e65100">耗尽层</text>
+
+                        <!-- 负离子 -->
+                        <text x="370" y="120" text-anchor="middle" font-size="18" fill="#1565c0">⊖</text>
+                        <text x="390" y="170" text-anchor="middle" font-size="18" fill="#1565c0">⊖</text>
+                        <text x="370" y="220" text-anchor="middle" font-size="18" fill="#1565c0">⊖</text>
+                        <text x="390" y="270" text-anchor="middle" font-size="18" fill="#1565c0">⊖</text>
+
+                        <!-- 正离子 -->
+                        <text x="420" y="120" text-anchor="middle" font-size="18" fill="#c62828">⊕</text>
+                        <text x="440" y="170" text-anchor="middle" font-size="18" fill="#c62828">⊕</text>
+                        <text x="420" y="220" text-anchor="middle" font-size="18" fill="#c62828">⊕</text>
+                        <text x="440" y="270" text-anchor="middle" font-size="18" fill="#c62828">⊕</text>
+                    </g>
+
+                    <!-- 内建电场 -->
+                    <g id="electric-field" opacity="0">
+                        <line x1="430" y1="100" x2="370" y2="100" stroke="#ff9800" stroke-width="3" marker-end="url(#arrowhead)"/>
+                        <text x="400" y="90" text-anchor="middle" font-size="12" fill="#e65100">内建电场 E</text>
+                    </g>
+
+                    <!-- 箭头标记 -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#ff9800"/>
+                        </marker>
+                    </defs>
+
+                    <!-- 扩散箭头 -->
+                    <g id="diffusion-arrows" opacity="0">
+                        <line x1="280" y1="150" x2="340" y2="150" stroke="#42a5f5" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                        <line x1="280" y1="200" x2="340" y2="200" stroke="#42a5f5" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                        <line x1="280" y1="250" x2="340" y2="250" stroke="#42a5f5" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+                        <line x1="520" y1="150" x2="460" y2="150" stroke="#ef5350" stroke-width="2" marker-end="url(#arrowRed)"/>
+                        <line x1="520" y1="200" x2="460" y2="200" stroke="#ef5350" stroke-width="2" marker-end="url(#arrowRed)"/>
+                        <line x1="520" y1="250" x2="460" y2="250" stroke="#ef5350" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+                        <text x="310" y="140" text-anchor="middle" font-size="11" fill="#1565c0">空穴扩散</text>
+                        <text x="490" y="140" text-anchor="middle" font-size="11" fill="#c62828">电子扩散</text>
+                    </g>
+
+                    <defs>
+                        <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#42a5f5"/>
+                        </marker>
+                        <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#ef5350"/>
+                        </marker>
+                    </defs>
+                </svg>
+
+                <div class="controls">
+                    <button class="btn" onclick="resetPNAnimation()">重置</button>
+                    <button class="btn" onclick="showStep(1)">步骤1: 扩散</button>
+                    <button class="btn" onclick="showStep(2)">步骤2: 耗尽层</button>
+                    <button class="btn" onclick="showStep(3)">步骤3: 内建电场</button>
+                    <button class="btn" onclick="playFullAnimation()">播放完整动画</button>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #42a5f5;"></div>
+                    <span>空穴（+）</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ef5350;"></div>
+                    <span>电子（-）</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff9800;"></div>
+                    <span>内建电场</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>💡 动画说明</h4>
+                <p>这个动画展示了 PN 结形成的三个关键步骤：</p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>扩散</strong>：P 区空穴向 N 区扩散，N 区电子向 P 区扩散</li>
+                    <li><strong>耗尽层形成</strong>：交界面附近形成不能移动的正负离子区</li>
+                    <li><strong>动态平衡</strong>：内建电场阻止继续扩散，达到平衡</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- 第二部分：二极管特性动画 -->
+        <div id="animation2" class="section">
+            <h2>📈 二极管伏安特性曲线</h2>
+            <p>观察二极管在不同偏置下的工作状态：</p>
+
+            <div class="animation-container">
+                <svg id="diode-svg" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 坐标轴 -->
+                    <line x1="100" y1="400" x2="700" y2="400" stroke="#333" stroke-width="2"/>
+                    <line x1="400" y1="50" x2="400" y2="450" stroke="#333" stroke-width="2"/>
+
+                    <!-- 箭头 -->
+                    <polygon points="700,400 690,395 690,405" fill="#333"/>
+                    <polygon points="400,50 395,60 405,60" fill="#333"/>
+
+                    <!-- 轴标签 -->
+                    <text x="700" y="430" text-anchor="middle" font-size="16" fill="#333">V (电压)</text>
+                    <text x="370" y="50" text-anchor="middle" font-size="16" fill="#333">I (电流)</text>
+
+                    <!-- 原点 -->
+                    <text x="390" y="420" text-anchor="end" font-size="14" fill="#666">0</text>
+
+                    <!-- 正向特性曲线 -->
+                    <path id="forward-curve" d="M 400,400 Q 450,400 500,380 Q 550,350 600,200 Q 650,100 680,80"
+                          stroke="#4caf50" stroke-width="3" fill="none" stroke-dasharray="1000" stroke-dashoffset="1000"/>
+
+                    <!-- 反向特性曲线 -->
+                    <path id="reverse-curve" d="M 400,400 Q 350,405 300,408 Q 250,410 200,412 Q 150,415 130,415"
+                          stroke="#f44336" stroke-width="3" fill="none" stroke-dasharray="1000" stroke-dashoffset="1000"/>
+
+                    <!-- 反向击穿 -->
+                    <path id="breakdown-curve" d="M 130,415 L 120,415 L 110,350 L 100,200"
+                          stroke="#ff9800" stroke-width="3" fill="none" stroke-dasharray="1000" stroke-dashoffset="1000"/>
+
+                    <!-- 阈值电压线 -->
+                    <line id="threshold-line" x1="500" y1="50" x2="500" y2="400" stroke="#9c27b0" stroke-width="1" stroke-dasharray="5,5" opacity="0"/>
+                    <text id="threshold-text" x="500" y="430" text-anchor="middle" font-size="14" fill="#9c27b0" opacity="0">Vth ≈ 0.5V</text>
+
+                    <!-- 工作点 -->
+                    <circle id="operating-point" cx="400" cy="400" r="8" fill="#ff5722" opacity="0"/>
+
+                    <!-- 区域标注 -->
+                    <rect id="dead-zone" x="400" y="50" width="100" height="350" fill="#e8f5e9" opacity="0"/>
+                    <text id="dead-zone-text" x="450" y="380" text-anchor="middle" font-size="14" fill="#2e7d32" opacity="0">死区</text>
+
+                    <rect id="forward-zone" x="500" y="50" width="200" height="350" fill="#c8e6c9" opacity="0"/>
+                    <text id="forward-zone-text" x="600" y="380" text-anchor="middle" font-size="14" fill="#1b5e20" opacity="0">正向导通区</text>
+
+                    <rect id="reverse-zone" x="100" y="50" width="300" height="350" fill="#ffebee" opacity="0"/>
+                    <text id="reverse-zone-text" x="250" y="380" text-anchor="middle" font-size="14" fill="#c62828" opacity="0">反向截止区</text>
+
+                    <rect id="breakdown-zone" x="100" y="50" width="50" height="350" fill="#fff3e0" opacity="0"/>
+                    <text id="breakdown-zone-text" x="125" y="380" text-anchor="middle" font-size="12" fill="#e65100" opacity="0">击穿区</text>
+                </svg>
+
+                <div class="controls">
+                    <button class="btn" onclick="resetDiodeAnimation()">重置</button>
+                    <button class="btn" onclick="showDiodeRegion('dead')">死区</button>
+                    <button class="btn" onclick="showDiodeRegion('forward')">正向导通</button>
+                    <button class="btn" onclick="showDiodeRegion('reverse')">反向截止</button>
+                    <button class="btn" onclick="showDiodeRegion('breakdown')">反向击穿</button>
+                    <button class="btn" onclick="animateOperatingPoint()">模拟工作点</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>📊 特性曲线解读</h4>
+                <p>二极管的伏安特性曲线分为四个区域：</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>死区</strong>（0 ~ 0.5V）：电流几乎为零，未导通</li>
+                    <li><strong>正向导通区</strong>（> 0.5V）：电流急剧增大，正常工作区</li>
+                    <li><strong>反向截止区</strong>（< 0V）：只有微小的反向饱和电流</li>
+                    <li><strong>反向击穿区</strong>（< -VBR）：电流急剧增大，可能损坏</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 第三部分：练习题 -->
+        <div id="quiz" class="section">
+            <h2>✏️ 章节练习</h2>
+
+            <div class="progress-bar">
+                <div class="progress" id="quiz-progress" style="width: 0%"></div>
+            </div>
+
+            <div class="score" id="score-display">
+                得分：<span id="score">0</span> / <span id="total">0</span>
+            </div>
+
+            <div id="quiz-container">
+                <!-- 问题将通过 JavaScript 动态生成 -->
+            </div>
+
+            <div class="controls" style="margin-top: 30px;">
+                <button class="btn" onclick="resetQuiz()">重新开始</button>
+                <button class="btn" onclick="showAnswers()">查看答案</button>
+            </div>
+        </div>
+
+        <!-- 第四部分：知识总结 -->
+        <div id="summary" class="section">
+            <h2>📚 知识点速查</h2>
+
+            <h3>第一章：半导体基础</h3>
+            <div class="card">
+                <h4>N 型 vs P 型</h4>
+                <table style="width: 100%; color: white; margin-top: 10px;">
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">特性</th>
+                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">N 型</th>
+                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">P 型</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">掺杂物</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">五价（磷、砷）</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">三价（硼）</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">多子</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">电子（-）</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">空穴（+）</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">少子</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">空穴（+）</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">电子（-）</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>第二章：PN 结与二极管</h3>
+            <div class="card">
+                <h4>正偏 vs 反偏</h4>
+                <table style="width: 100%; color: white; margin-top: 10px;">
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">特性</th>
+                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">正向偏置</th>
+                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">反向偏置</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">电源接法</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">P 正 N 负</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">P 负 N 正</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">耗尽层</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">变窄</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">变宽</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">电流</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">大（mA）</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">极小（μA）</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">状态</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">导通</td>
+                        <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.3);">截止</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h4>🎯 记忆口诀</h4>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>五价给电子是 N，三价要电子是 P</li>
+                    <li>正偏导通反偏截止，正向压降硅 0.7</li>
+                    <li>温度升高变少子，多子基本不会变</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 切换标签页
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // PN 结动画
+        let pnStep = 0;
+
+        function resetPNAnimation() {
+            pnStep = 0;
+            document.getElementById('diffusion-arrows').setAttribute('opacity', '0');
+            document.getElementById('depletion-layer').setAttribute('opacity', '0');
+            document.getElementById('electric-field').setAttribute('opacity', '0');
+
+            // 重置空穴和电子位置
+            document.querySelectorAll('.hole').forEach(h => {
+                h.style.transform = 'translateX(0)';
+                h.style.transition = 'all 0.5s';
+            });
+            document.querySelectorAll('.electron').forEach(e => {
+                e.style.transform = 'translateX(0)';
+                e.style.transition = 'all 0.5s';
+            });
+        }
+
+        function showStep(step) {
+            resetPNAnimation();
+            pnStep = step;
+
+            if (step >= 1) {
+                document.getElementById('diffusion-arrows').setAttribute('opacity', '1');
+                document.querySelectorAll('.hole').forEach(h => {
+                    h.style.transform = 'translateX(80px)';
+                });
+                document.querySelectorAll('.electron').forEach(e => {
+                    e.style.transform = 'translateX(-80px)';
+                });
+            }
+
+            if (step >= 2) {
+                setTimeout(() => {
+                    document.getElementById('depletion-layer').setAttribute('opacity', '1');
+                }, 500);
+            }
+
+            if (step >= 3) {
+                setTimeout(() => {
+                    document.getElementById('electric-field').setAttribute('opacity', '1');
+                }, 1000);
+            }
+        }
+
+        function playFullAnimation() {
+            resetPNAnimation();
+            setTimeout(() => showStep(1), 500);
+            setTimeout(() => showStep(2), 1500);
+            setTimeout(() => showStep(3), 2500);
+        }
+
+        // 二极管特性动画
+        let diodeAnimationId = null;
+
+        function resetDiodeAnimation() {
+            if (diodeAnimationId) {
+                cancelAnimationFrame(diodeAnimationId);
+                diodeAnimationId = null;
+            }
+
+            document.getElementById('forward-curve').style.strokeDashoffset = '1000';
+            document.getElementById('reverse-curve').style.strokeDashoffset = '1000';
+            document.getElementById('breakdown-curve').style.strokeDashoffset = '1000';
+            document.getElementById('threshold-line').setAttribute('opacity', '0');
+            document.getElementById('threshold-text').setAttribute('opacity', '0');
+            document.getElementById('operating-point').setAttribute('opacity', '0');
+
+            ['dead-zone', 'forward-zone', 'reverse-zone', 'breakdown-zone',
+             'dead-zone-text', 'forward-zone-text', 'reverse-zone-text', 'breakdown-zone-text'].forEach(id => {
+                document.getElementById(id).setAttribute('opacity', '0');
+            });
+        }
+
+        function showDiodeRegion(region) {
+            resetDiodeAnimation();
+
+            switch(region) {
+                case 'dead':
+                    animatePath('forward-curve', 500, 0, 100);
+                    document.getElementById('dead-zone').setAttribute('opacity', '0.3');
+                    document.getElementById('dead-zone-text').setAttribute('opacity', '1');
+                    break;
+                case 'forward':
+                    animatePath('forward-curve', 1000);
+                    document.getElementById('threshold-line').setAttribute('opacity', '1');
+                    document.getElementById('threshold-text').setAttribute('opacity', '1');
+                    document.getElementById('forward-zone').setAttribute('opacity', '0.3');
+                    document.getElementById('forward-zone-text').setAttribute('opacity', '1');
+                    break;
+                case 'reverse':
+                    animatePath('reverse-curve', 1000);
+                    document.getElementById('reverse-zone').setAttribute('opacity', '0.3');
+                    document.getElementById('reverse-zone-text').setAttribute('opacity', '1');
+                    break;
+                case 'breakdown':
+                    animatePath('reverse-curve', 500);
+                    setTimeout(() => {
+                        animatePath('breakdown-curve', 500);
+                    }, 500);
+                    document.getElementById('breakdown-zone').setAttribute('opacity', '0.3');
+                    document.getElementById('breakdown-zone-text').setAttribute('opacity', '1');
+                    break;
+            }
+        }
+
+        function animatePath(pathId, duration, from = 1000, to = 0) {
+            const path = document.getElementById(pathId);
+            const start = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentValue = from + (to - from) * progress;
+
+                path.style.strokeDashoffset = currentValue;
+
+                if (progress < 1) {
+                    diodeAnimationId = requestAnimationFrame(animate);
+                }
+            }
+
+            diodeAnimationId = requestAnimationFrame(animate);
+        }
+
+        function animateOperatingPoint() {
+            resetDiodeAnimation();
+            animatePath('forward-curve', 2000);
+
+            const point = document.getElementById('operating-point');
+            point.setAttribute('opacity', '1');
+
+            const startCx = 400;
+            const endCx = 600;
+            const startCy = 400;
+            const endCy = 150;
+            const duration = 2000;
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+
+                const cx = startCx + (endCx - startCx) * eased;
+                const cy = startCy + (endCy - startCy) * eased;
+
+                point.setAttribute('cx', cx);
+                point.setAttribute('cy', cy);
+
+                if (progress < 1) {
+                    diodeAnimationId = requestAnimationFrame(animate);
+                }
+            }
+
+            diodeAnimationId = requestAnimationFrame(animate);
+        }
+
+        // 练习题系统
+        const quizData = [
+            {
+                question: "1. N 型半导体的多数载流子是什么？",
+                options: ["空穴", "电子", "正离子", "负离子"],
+                correct: 1,
+                explanation: "N 型半导体掺入五价元素（如磷），多出一个电子，所以多子是带负电的电子。N = Negative。"
+            },
+            {
+                question: "2. P 型半导体的多数载流子是什么？",
+                options: ["电子", "空穴", "正离子", "负离子"],
+                correct: 1,
+                explanation: "P 型半导体掺入三价元素（如硼），缺少一个电子形成空穴，所以多子是带正电的空穴。P = Positive。"
+            },
+            {
+                question: "3. PN 结形成时，扩散运动的结果是什么？",
+                options: [
+                    "形成内建电场",
+                    "载流子完全消失",
+                    "半导体变成导体",
+                    "温度急剧升高"
+                ],
+                correct: 0,
+                explanation: "扩散导致交界面附近形成不能移动的正负离子区（耗尽层），从而产生内建电场。"
+            },
+            {
+                question: "4. 二极管正向偏置时，耗尽层会怎样变化？",
+                options: ["变宽", "变窄", "不变", "消失"],
+                correct: 1,
+                explanation: "正向偏置时，外加电场与内建电场方向相反，削弱内建电场，使耗尽层变窄，有利于多子扩散。"
+            },
+            {
+                question: "5. 硅二极管的正向导通压降约为多少？",
+                options: ["0.2V", "0.3V", "0.5V", "0.7V"],
+                correct: 3,
+                explanation: "硅二极管的正向导通压降约为 0.6~0.7V，通常取 0.7V；锗二极管约为 0.2~0.3V。"
+            },
+            {
+                question: "6. 温度升高时，半导体中的少子浓度会怎样变化？",
+                options: ["基本不变", "显著增大", "显著减小", "变为零"],
+                correct: 1,
+                explanation: "少子浓度对温度非常敏感。温度升高时，本征载流子浓度 nᵢ 急剧增大，导致少子浓度显著增大。"
+            },
+            {
+                question: "7. 质量作用定律 n·p = nᵢ² 在什么条件下成立？",
+                options: [
+                    "任何条件",
+                    "只在高温时",
+                    "热平衡状态（无外加电压、光照）",
+                    "只在低温时"
+                ],
+                correct: 2,
+                explanation: "质量作用定律只在热平衡状态下成立。当有外加电压、光照等外界因素时，n·p 可能不等于 nᵢ²。"
+            },
+            {
+                question: "8. 二极管反向击穿后一定会损坏吗？",
+                options: [
+                    "是的，一定会损坏",
+                    "不一定，稳压管就是利用击穿特性",
+                    "只有锗管会损坏",
+                    "只有硅管会损坏"
+                ],
+                correct: 1,
+                explanation: "普通二极管反向击穿可能会损坏，但稳压管（齐纳二极管）专门设计工作在反向击穿区，利用其稳压特性。"
+            },
+            {
+                question: "9. PN 结的内建电场方向是怎样的？",
+                options: [
+                    "从 P 区指向 N 区",
+                    "从 N 区指向 P 区",
+                    "与外加电场相同",
+                    "没有方向"
+                ],
+                correct: 1,
+                explanation: "内建电场由 N 区的正离子指向 P 区的负离子，即从 N 指向 P。这个电场阻止多子继续扩散。"
+            },
+            {
+                question: "10. 二极管的死区电压（门槛电压）是指什么？",
+                options: [
+                    "二极管损坏的电压",
+                    "反向击穿电压",
+                    "开始有明显正向电流的电压",
+                    "最大允许电压"
+                ],
+                correct: 2,
+                explanation: "死区电压是指二极管开始有明显正向电流时的电压。硅管约 0.5V，锗管约 0.1V。低于此电压时电流几乎为零。"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = new Array(quizData.length).fill(false);
+
+        function initQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = new Array(quizData.length).fill(false);
+            document.getElementById('score').textContent = '0';
+            document.getElementById('total').textContent = quizData.length;
+            document.getElementById('quiz-progress').style.width = '0%';
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('quiz-container');
+            const q = quizData[currentQuestion];
+
+            let html = `
+                <div class="quiz-question">
+                    <h4>${q.question}</h4>
+                    <div class="options" id="options-${currentQuestion}">
+            `;
+
+            q.options.forEach((opt, index) => {
+                const isAnswered = answered[currentQuestion];
+                const isCorrect = index === q.correct;
+                let className = 'option';
+
+                if (isAnswered) {
+                    className += isCorrect ? ' correct' : ' wrong';
+                }
+
+                html += `
+                    <div class="${className}" onclick="selectAnswer(${index})" ${isAnswered ? 'style="pointer-events: none;"' : ''}>
+                        ${String.fromCharCode(65 + index)}. ${opt}
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                    <div class="explanation ${answered[currentQuestion] ? 'show' : ''}" id="explanation-${currentQuestion}">
+                        <strong>💡 解析：</strong>${q.explanation}
+                    </div>
+                </div>
+            `;
+
+            if (currentQuestion < quizData.length - 1) {
+                html += `<button class="btn" onclick="nextQuestion()" style="margin-top: 20px;">下一题 →</button>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function selectAnswer(index) {
+            if (answered[currentQuestion]) return;
+
+            answered[currentQuestion] = true;
+            const q = quizData[currentQuestion];
+            const options = document.querySelectorAll(`#options-${currentQuestion} .option`);
+
+            options.forEach((opt, i) => {
+                if (i === q.correct) {
+                    opt.classList.add('correct');
+                } else if (i === index && index !== q.correct) {
+                    opt.classList.add('wrong');
+                }
+                opt.style.pointerEvents = 'none';
+            });
+
+            if (index === q.correct) {
+                score++;
+                document.getElementById('score').textContent = score;
+            }
+
+            document.getElementById(`explanation-${currentQuestion}`).classList.add('show');
+            document.getElementById('quiz-progress').style.width = `${((currentQuestion + 1) / quizData.length) * 100}%`;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            }
+        }
+
+        function resetQuiz() {
+            initQuiz();
+        }
+
+        function showAnswers() {
+            answered = new Array(quizData.length).fill(true);
+            score = quizData.length;
+            document.getElementById('score').textContent = score;
+            document.getElementById('quiz-progress').style.width = '100%';
+
+            const container = document.getElementById('quiz-container');
+            let html = '';
+
+            quizData.forEach((q, qIndex) => {
+                html += `
+                    <div class="quiz-question">
+                        <h4>${q.question}</h4>
+                        <div class="options">
+                `;
+
+                q.options.forEach((opt, index) => {
+                    let className = 'option';
+                    if (index === q.correct) {
+                        className += ' correct';
+                    }
+                    html += `<div class="${className}" style="pointer-events: none;">${String.fromCharCode(65 + index)}. ${opt}</div>`;
+                });
+
+                html += `
+                        </div>
+                        <div class="explanation show">
+                            <strong>💡 解析：</strong>${q.explanation}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 初始化
+        window.onload = function() {
+            initQuiz();
+        };
+    </script>
+</body>
+</html>
