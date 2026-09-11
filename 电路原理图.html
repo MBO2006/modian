@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模电电路原理图 - 交互式学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #e94560, #0f3460, #e94560);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .subtitle {
+            color: #8892b0;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        /* 导航 */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .nav-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-card:hover {
+            transform: translateY(-5px);
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+        }
+
+        .nav-card.active {
+            background: rgba(233, 69, 96, 0.3);
+            border-color: #e94560;
+        }
+
+        .nav-card h3 {
+            color: #e94560;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .nav-card p {
+            color: #8892b0;
+            font-size: 0.9em;
+        }
+
+        /* 电路容器 */
+        .circuit-section {
+            display: none;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .circuit-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #e94560;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e94560;
+        }
+
+        h3 {
+            color: #64ffda;
+            margin: 20px 0 10px;
+        }
+
+        .circuit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .circuit-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .circuit-card h4 {
+            color: #64ffda;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        /* SVG 样式 */
+        svg {
+            width: 100%;
+            height: auto;
+            background: #1a1a2e;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .wire {
+            stroke: #4fc3f7;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .component {
+            fill: none;
+            stroke: #e0e0e0;
+            stroke-width: 2;
+        }
+
+        .label {
+            fill: #e0e0e0;
+            font-size: 14px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .value {
+            fill: #64ffda;
+            font-size: 12px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .node {
+            fill: #e94560;
+            stroke: none;
+        }
+
+        .highlight {
+            stroke: #e94560;
+            stroke-width: 3;
+            fill: none;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .current-flow {
+            stroke: #ffeb3b;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 10 10;
+            animation: flow 1s linear infinite;
+        }
+
+        @keyframes flow {
+            to { stroke-dashoffset: -20; }
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #e94560, #0f3460);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #64ffda, #0f3460);
+        }
+
+        /* 公式 */
+        .formula {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+            font-family: 'Consolas', monospace;
+        }
+
+        /* 说明文字 */
+        .explanation {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #e94560;
+        }
+
+        /* 参数表格 */
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .params-table th, .params-table td {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .params-table th {
+            background: rgba(233, 69, 96, 0.3);
+            color: #e94560;
+        }
+
+        .params-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .circuit-grid { grid-template-columns: 1fr; }
+            .nav-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* 开关动画 */
+        .switch-on {
+            stroke: #4caf50;
+            stroke-width: 3;
+        }
+
+        .switch-off {
+            stroke: #f44336;
+            stroke-width: 3;
+        }
+
+        /* LED 发光 */
+        .led-glow {
+            filter: drop-shadow(0 0 10px currentColor);
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px currentColor); }
+            to { filter: drop-shadow(0 0 20px currentColor); }
+        }
+
+        /* 波形 */
+        .waveform {
+            stroke: #64ffda;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .waveform-bg {
+            fill: rgba(100, 255, 218, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ 模电电路原理图交互学习</h1>
+            <p class="subtitle">点击不同电路模块，查看原理图、动画演示和详细解析</p>
+        </header>
+
+        <!-- 导航卡片 -->
+        <div class="nav-grid">
+            <div class="nav-card active" onclick="showSection('diode')">
+                <h3>二极管电路</h3>
+                <p>整流、限幅、稳压</p>
+            </div>
+            <div class="nav-card" onclick="showSection('bjt-bias')">
+                <h3>BJT 偏置电路</h3>
+                <p>固定偏置、分压偏置</p>
+            </div>
+            <div class="nav-card" onclick="showSection('ce-amp')">
+                <h3>共射放大电路</h3>
+                <p>电压放大、反相输出</p>
+            </div>
+            <div class="nav-card" onclick="showSection('cc-amp')">
+                <h3>共集电极电路</h3>
+                <p>射极跟随器</p>
+            </div>
+            <div class="nav-card" onclick="showSection('mosfet')">
+                <h3>MOSFET 电路</h3>
+                <p>共源、共漏放大</p>
+            </div>
+            <div class="nav-card" onclick="showSection('power')">
+                <h3>电源电路</h3>
+                <p>稳压电源设计</p>
+            </div>
+        </div>
+
+        <!-- 二极管电路 -->
+        <div id="diode" class="circuit-section active">
+            <h2>二极管电路</h2>
+
+            <div class="circuit-grid">
+                <!-- 半波整流 -->
+                <div class="circuit-card">
+                    <h4>半波整流电路</h4>
+                    <svg viewBox="0 0 400 300">
+                        <!-- 输入信号 -->
+                        <path d="M 30,150 Q 80,50 130,150 Q 180,250 230,150" class="waveform" opacity="0.5"/>
+                        <text x="30" y="40" class="label">输入：交流信号</text>
+
+                        <!-- 变压器 -->
+                        <circle cx="100" cy="150" r="30" class="component"/>
+                        <text x="100" y="155" text-anchor="middle" class="label">T</text>
+                        <line x1="30" y1="150" x2="70" y2="150" class="wire"/>
+                        <line x1="130" y1="150" x2="180" y2="150" class="wire"/>
+
+                        <!-- 二极管 -->
+                        <polygon points="180,130 180,170 220,150" class="component"/>
+                        <line x1="220" y1="130" x2="220" y2="170" class="component"/>
+                        <line x1="180" y1="150" x2="180" y2="150" class="wire"/>
+                        <text x="200" y="120" text-anchor="middle" class="label">D</text>
+
+                        <!-- 负载 -->
+                        <line x1="220" y1="150" x2="280" y2="150" class="wire"/>
+                        <rect x="280" y="130" width="60" height="40" class="component"/>
+                        <text x="310" y="155" text-anchor="middle" class="label">R_L</text>
+                        <line x1="340" y1="150" x2="370" y2="150" class="wire"/>
+
+                        <!-- 输出 -->
+                        <path d="M 370,150 Q 370,100 370,150" class="waveform" opacity="0.3"/>
+                        <text x="370" y="90" text-anchor="middle" class="label">输出</text>
+
+                        <!-- 回路 -->
+                        <line x1="30" y1="200" x2="370" y2="200" class="wire"/>
+                        <line x1="70" y1="150" x2="70" y2="200" class="wire"/>
+                        <line x1="370" y1="150" x2="370" y2="200" class="wire"/>
+
+                        <!-- 电流方向 -->
+                        <path d="M 160,140 L 170,150 L 160,160" class="current-flow"/>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>工作原理：</strong>
+                        <ul>
+                            <li>交流正半周：二极管导通，电流流过负载</li>
+                            <li>交流负半周：二极管截止，无电流</li>
+                            <li>输出：脉动直流（只有正半周）</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        V_out = V_in × 0.45（有效值）<br>
+                        或 V_out = V_peak / π（平均值）
+                    </div>
+                </div>
+
+                <!-- 桥式整流 -->
+                <div class="circuit-card">
+                    <h4>桥式全波整流电路</h4>
+                    <svg viewBox="0 0 400 350">
+                        <!-- 电源输入 -->
+                        <line x1="30" y1="100" x2="100" y2="100" class="wire"/>
+                        <line x1="30" y1="250" x2="100" y2="250" class="wire"/>
+                        <text x="30" y="90" class="label">AC输入</text>
+
+                        <!-- 桥式二极管 -->
+                        <!-- D1 -->
+                        <polygon points="120,80 120,120 160,100" class="component"/>
+                        <line x1="160" y1="80" x2="160" y2="120" class="component"/>
+                        <text x="140" y="70" text-anchor="middle" class="value">D1</text>
+
+                        <!-- D2 -->
+                        <polygon points="120,230 120,270 160,250" class="component"/>
+                        <line x1="160" y1="230" x2="160" y2="270" class="component"/>
+                        <text x="140" y="290" text-anchor="middle" class="value">D2</text>
+
+                        <!-- D3 -->
+                        <polygon points="240,80 240,120 200,100" class="component"/>
+                        <line x1="200" y1="80" x2="200" y2="120" class="component"/>
+                        <text x="220" y="70" text-anchor="middle" class="value">D3</text>
+
+                        <!-- D4 -->
+                        <polygon points="240,230 240,270 200,250" class="component"/>
+                        <line x1="200" y1="230" x2="200" y2="270" class="component"/>
+                        <text x="220" y="290" text-anchor="middle" class="value">D4</text>
+
+                        <!-- 连接线 -->
+                        <line x1="100" y1="100" x2="120" y2="100" class="wire"/>
+                        <line x1="100" y1="250" x2="120" y2="250" class="wire"/>
+                        <line x1="160" y1="100" x2="200" y2="100" class="wire"/>
+                        <line x1="160" y1="250" x2="200" y2="250" class="wire"/>
+                        <line x1="240" y1="100" x2="280" y2="100" class="wire"/>
+                        <line x1="240" y1="250" x2="280" y2="250" class="wire"/>
+
+                        <!-- 负载 -->
+                        <line x1="280" y1="100" x2="340" y2="100" class="wire"/>
+                        <rect x="340" y="80" width="40" height="40" class="component"/>
+                        <text x="360" y="105" text-anchor="middle" class="label">R_L</text>
+                        <line x1="360" y1="120" x2="360" y2="180" class="wire"/>
+
+                        <!-- 输出 -->
+                        <line x1="360" y1="180" x2="360" y2="250" class="wire"/>
+                        <line x1="280" y1="250" x2="360" y2="250" class="wire"/>
+                        <text x="360" y="170" text-anchor="middle" class="label">V_out</text>
+
+                        <!-- 标注 -->
+                        <text x="200" y="330" text-anchor="middle" class="value">全波整流：正负半周都有输出</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>优势：</strong>
+                        <ul>
+                            <li>正负半周都能利用，效率高</li>
+                            <li>输出脉动小，易于滤波</li>
+                            <li>输出频率是输入的 2 倍</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        V_out = 2 × V_peak / π ≈ 0.9 × V_rms
+                    </div>
+                </div>
+
+                <!-- 限幅电路 -->
+                <div class="circuit-card">
+                    <h4>限幅（削波）电路</h4>
+                    <svg viewBox="0 0 400 280">
+                        <!-- 输入信号 - 正弦波 -->
+                        <path d="M 30,140 Q 80,40 130,140 Q 180,240 230,140 Q 280,40 330,140" class="waveform" opacity="0.3"/>
+                        <text x="30" y="30" class="label">输入：正弦波</text>
+
+                        <!-- 电路 -->
+                        <line x1="30" y1="140" x2="120" y2="140" class="wire"/>
+                        <line x1="120" y1="140" x2="120" y2="80" class="wire"/>
+                        <line x1="120" y1="140" x2="120" y2="200" class="wire"/>
+
+                        <!-- 上二极管 -->
+                        <polygon points="140,80 160,100 140,120" class="component"/>
+                        <line x1="160" y1="80" x2="160" y2="120" class="component"/>
+                        <text x="150" y="70" text-anchor="middle" class="value">D1</text>
+
+                        <!-- Vref 上 -->
+                        <line x1="160" y1="100" x2="200" y2="100" class="wire"/>
+                        <line x1="200" y1="60" x2="200" y2="140" class="wire"/>
+                        <text x="210" y="100" class="value">+V_ref</text>
+
+                        <!-- 下二极管 -->
+                        <polygon points="140,160 160,180 140,200" class="component"/>
+                        <line x1="160" y1="160" x2="160" y2="200" class="component"/>
+                        <text x="150" y="220" text-anchor="middle" class="value">D2</text>
+
+                        <!-- Vref 下 -->
+                        <line x1="160" y1="180" x2="200" y2="180" class="wire"/>
+                        <line x1="200" y1="140" x2="200" y2="220" class="wire"/>
+                        <text x="210" y="180" class="value">-V_ref</text>
+
+                        <!-- 输出 -->
+                        <line x1="120" y1="140" x2="280" y2="140" class="wire"/>
+                        <line x1="280" y1="140" x2="340" y2="140" class="wire"/>
+                        <text x="340" y="130" class="label">输出</text>
+
+                        <!-- 输出波形 -->
+                        <path d="M 280,140 L 290,140 Q 310,80 330,140 Q 350,140 360,140" class="waveform"/>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>工作原理：</strong>
+                        <ul>
+                            <li>V_in > V_ref + 0.7V：D1 导通，输出被钳在 V_ref + 0.7V</li>
+                            <li>V_in < -V_ref - 0.7V：D2 导通，输出被钳在 -V_ref - 0.7V</li>
+                            <li>中间区域：两个二极管都截止，输出等于输入</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 稳压电路 -->
+                <div class="circuit-card">
+                    <h4>稳压二极管电路</h4>
+                    <svg viewBox="0 0 400 300">
+                        <!-- 输入 -->
+                        <line x1="30" y1="100" x2="100" y2="100" class="wire"/>
+                        <text x="30" y="90" class="label">V_in</text>
+
+                        <!-- 限流电阻 R -->
+                        <rect x="100" y="85" width="80" height="30" class="component"/>
+                        <text x="140" y="105" text-anchor="middle" class="label">R</text>
+                        <line x1="180" y1="100" x2="250" y2="100" class="wire"/>
+
+                        <!-- 稳压管 -->
+                        <polygon points="250,80 250,120 290,100" class="component"/>
+                        <line x1="290" y1="80" x2="290" y2="120" class="component"/>
+                        <text x="270" y="70" text-anchor="middle" class="value">Dz</text>
+                        <text x="270" y="140" text-anchor="middle" class="value">Vz</text>
+
+                        <!-- 输出 -->
+                        <line x1="250" y1="100" x2="340" y2="100" class="wire"/>
+                        <text x="340" y="90" class="label">V_out = Vz</text>
+
+                        <!-- 负载 -->
+                        <line x1="340" y1="100" x2="340" y2="160" class="wire"/>
+                        <rect x="310" y="160" width="60" height="30" class="component"/>
+                        <text x="340" y="180" text-anchor="middle" class="label">R_L</text>
+
+                        <!-- 地线 -->
+                        <line x1="30" y1="220" x2="370" y2="220" class="wire"/>
+                        <line x1="290" y1="120" x2="290" y2="220" class="wire"/>
+                        <line x1="340" y1="190" x2="340" y2="220" class="wire"/>
+
+                        <!-- 稳压管符号标注 -->
+                        <text x="270" y="250" text-anchor="middle" class="value">工作在反向击穿区</text>
+                        <text x="270" y="270" text-anchor="middle" class="value">V_out 稳定在 Vz</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>稳压原理：</strong>
+                        <ul>
+                            <li>V_in 变化 → I_R 变化 → R 上压降变化</li>
+                            <li>V_out = V_in - I_R × R</li>
+                            <li>稳压管在击穿区：I_Dz 变化大，但 V_Dz 几乎不变</li>
+                            <li>所以 V_out ≈ Vz 保持稳定</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        R = (V_in - Vz) / (Iz + I_L)<br>
+                        I_L = Vz / R_L
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BJT 偏置电路 -->
+        <div id="bjt-bias" class="circuit-section">
+            <h2>BJT 偏置电路</h2>
+
+            <div class="circuit-grid">
+                <!-- 固定偏置 -->
+                <div class="circuit-card">
+                    <h4>固定偏置电路（基极偏置）</h4>
+                    <svg viewBox="0 0 450 350">
+                        <!-- VCC -->
+                        <line x1="225" y1="30" x2="225" y2="60" class="wire"/>
+                        <text x="225" y="25" text-anchor="middle" class="label">+V_CC</text>
+
+                        <!-- RC -->
+                        <line x1="225" y1="60" x2="225" y2="100" class="wire"/>
+                        <rect x="210" y="100" width="30" height="60" class="component"/>
+                        <text x="245" y="135" class="value">R_C</text>
+                        <line x1="225" y1="160" x2="225" y2="190" class="wire"/>
+
+                        <!-- 三极管 NPN -->
+                        <circle cx="225" cy="220" r="30" class="component" fill="none"/>
+                        <line x1="225" y1="190" x2="225" y2="200" class="wire"/>
+                        <line x1="225" y1="240" x2="225" y2="260" class="wire"/>
+                        <line x1="200" y1="210" x2="250" y2="210" class="component" stroke-width="3"/>
+                        <line x1="250" y1="190" x2="250" y2="230" class="component" stroke-width="3"/>
+                        <polygon points="245,225 250,230 245,220" fill="#e0e0e0"/>
+
+                        <!-- 电极标注 -->
+                        <text x="225" y="280" text-anchor="middle" class="label">E</text>
+                        <text x="260" y="215" class="label">C</text>
+                        <text x="190" y="215" class="label">B</text>
+
+                        <!-- RB -->
+                        <line x1="100" y1="210" x2="170" y2="210" class="wire"/>
+                        <rect x="100" y="195" width="70" height="30" class="component"/>
+                        <text x="135" y="215" text-anchor="middle" class="value">R_B</text>
+                        <line x1="100" y1="210" x2="60" y2="210" class="wire"/>
+                        <text x="60" y="200" class="label">+V_CC</text>
+
+                        <!-- 地线 -->
+                        <line x1="225" y1="260" x2="225" y2="300" class="wire"/>
+                        <line x1="180" y1="300" x2="270" y2="300" class="wire" stroke-width="3"/>
+                        <line x1="190" y1="295" x2="260" y2="295" class="wire" stroke-width="2"/>
+                        <line x1="200" y1="290" x2="250" y2="290" class="wire" stroke-width="1"/>
+
+                        <!-- 输出标注 -->
+                        <line x1="225" y1="160" x2="350" y2="160" class="wire"/>
+                        <text x="350" y="150" class="label">V_out</text>
+                        <line x1="350" y1="160" x2="350" y2="300" class="wire"/>
+                        <line x1="350" y1="300" x2="270" y2="300" class="wire"/>
+
+                        <!-- 公式标注 -->
+                        <text x="350" y="40" class="value">I_B = (V_CC - V_BE) / R_B</text>
+                        <text x="350" y="60" class="value">I_C = β × I_B</text>
+                        <text x="350" y="80" class="value">V_CE = V_CC - I_C × R_C</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>特点：</strong>
+                        <ul>
+                            <li>电路简单，只用一个偏置电阻</li>
+                            <li>Q 点不稳定，受温度影响大</li>
+                            <li>温度↑ → β↑ → I_C↑ → 可能饱和失真</li>
+                            <li>只适合温度变化小、要求不高的场合</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 分压偏置 -->
+                <div class="circuit-card">
+                    <h4>分压偏置电路（稳定工作点）</h4>
+                    <svg viewBox="0 0 500 400">
+                        <!-- VCC -->
+                        <line x1="250" y1="30" x2="250" y2="60" class="wire"/>
+                        <text x="250" y="25" text-anchor="middle" class="label">+V_CC</text>
+
+                        <!-- RC -->
+                        <line x1="250" y1="60" x2="250" y2="100" class="wire"/>
+                        <rect x="235" y="100" width="30" height="60" class="component"/>
+                        <text x="270" y="135" class="value">R_C</text>
+                        <line x1="250" y1="160" x2="250" y2="190" class="wire"/>
+
+                        <!-- 三极管 NPN -->
+                        <circle cx="250" cy="230" r="30" class="component" fill="none"/>
+                        <line x1="250" y1="190" x2="250" y2="200" class="wire"/>
+                        <line x1="250" y1="260" x2="250" y2="280" class="wire"/>
+                        <line x1="225" y1="220" x2="275" y2="220" class="component" stroke-width="3"/>
+                        <line x1="275" y1="200" x2="275" y2="240" class="component" stroke-width="3"/>
+                        <polygon points="270,235 275,240 270,230" fill="#e0e0e0"/>
+
+                        <!-- 电极标注 -->
+                        <text x="250" y="300" text-anchor="middle" class="label">E</text>
+                        <text x="285" y="225" class="label">C</text>
+                        <text x="215" y="225" class="label">B</text>
+
+                        <!-- RB1 -->
+                        <line x1="120" y1="220" x2="190" y2="220" class="wire"/>
+                        <line x1="120" y1="60" x2="120" y2="220" class="wire"/>
+                        <line x1="250" y1="60" x2="120" y2="60" class="wire"/>
+                        <rect x="105" y="60" width="30" height="160" class="component"/>
+                        <text x="90" y="140" class="value">R_B1</text>
+
+                        <!-- RB2 -->
+                        <line x1="120" y1="220" x2="120" y2="340" class="wire"/>
+                        <rect x="105" y="220" width="30" height="80" class="component"/>
+                        <text x="90" y="260" class="value">R_B2</text>
+
+                        <!-- RE -->
+                        <line x1="250" y1="280" x2="250" y2="320" class="wire"/>
+                        <rect x="235" y="320" width="30" height="40" class="component"/>
+                        <text x="270" y="345" class="value">R_E</text>
+                        <line x1="250" y1="360" x2="250" y2="380" class="wire"/>
+
+                        <!-- 地线 -->
+                        <line x1="120" y1="340" x2="120" y2="380" class="wire"/>
+                        <line x1="180" y1="380" x2="320" y2="380" class="wire" stroke-width="3"/>
+                        <line x1="190" y1="375" x2="310" y2="375" class="wire" stroke-width="2"/>
+                        <line x1="200" y1="370" x2="300" y2="370" class="wire" stroke-width="1"/>
+
+                        <!-- 输出标注 -->
+                        <line x1="250" y1="160" x2="400" y2="160" class="wire"/>
+                        <text x="400" y="150" class="label">V_out</text>
+
+                        <!-- 稳定原理标注 -->
+                        <rect x="330" y="180" width="160" height="200" fill="rgba(233, 69, 96, 0.1)" stroke="#e94560" rx="10"/>
+                        <text x="410" y="200" text-anchor="middle" class="value" font-size="13">稳定原理：</text>
+                        <text x="410" y="220" text-anchor="middle" class="label" font-size="11">V_B 固定（分压）</text>
+                        <text x="410" y="240" text-anchor="middle" class="label" font-size="11">I_C↑ → V_E↑</text>
+                        <text x="410" y="260" text-anchor="middle" class="label" font-size="11">→ V_BE↓ → I_B↓</text>
+                        <text x="410" y="280" text-anchor="middle" class="label" font-size="11">→ I_C↓（负反馈）</text>
+                        <text x="410" y="310" text-anchor="middle" class="value" font-size="12">V_B ≈ R_B2/(R_B1+R_B2)×V_CC</text>
+                        <text x="410" y="330" text-anchor="middle" class="value" font-size="12">I_C ≈ (V_B-V_BE)/R_E</text>
+                        <text x="410" y="350" text-anchor="middle" class="value" font-size="12">V_CE = V_CC - I_C(R_C+R_E)</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>为什么稳定？</strong>
+                        <ul>
+                            <li>V_B 由 R_B1、R_B2 分压固定</li>
+                            <li>温度升高 → I_C 增大 → V_E = I_E × R_E 增大</li>
+                            <li>V_BE = V_B - V_E 减小 → I_B 减小 → I_C 减小</li>
+                            <li>形成负反馈，自动稳定 Q 点</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        设计要点：<br>
+                        V_B >> V_BE（通常 V_B = 3~5 V_BE）<br>
+                        I_1 >> I_B（流过分压电阻的电流远大于基极电流）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 共射放大电路 -->
+        <div id="ce-amp" class="circuit-section">
+            <h2>共射放大电路</h2>
+
+            <div class="circuit-grid">
+                <div class="circuit-card">
+                    <h4>基本共射放大电路</h4>
+                    <svg viewBox="0 0 550 450">
+                        <!-- VCC -->
+                        <line x1="275" y1="30" x2="275" y2="60" class="wire"/>
+                        <text x="275" y="25" text-anchor="middle" class="label">+V_CC (+12V)</text>
+
+                        <!-- RC -->
+                        <line x1="275" y1="60" x2="275" y2="100" class="wire"/>
+                        <rect x="260" y="100" width="30" height="50" class="component"/>
+                        <text x="295" y="130" class="value">R_C (4.7kΩ)</text>
+                        <line x1="275" y1="150" x2="275" y2="190" class="wire"/>
+
+                        <!-- 三极管 NPN -->
+                        <circle cx="275" cy="230" r="35" class="component" fill="none"/>
+                        <line x1="275" y1="190" x2="275" y2="195" class="wire"/>
+                        <line x1="275" y1="265" x2="275" y2="290" class="wire"/>
+                        <line x1="250" y1="220" x2="300" y2="220" class="component" stroke-width="3"/>
+                        <line x1="300" y1="195" x2="300" y2="245" class="component" stroke-width="3"/>
+                        <polygon points="295,240 300,245 295,235" fill="#e0e0e0"/>
+                        <text x="275" y="235" text-anchor="middle" class="value">Q</text>
+
+                        <!-- 电极标注 -->
+                        <text x="275" y="310" text-anchor="middle" class="label">E</text>
+                        <text x="310" y="225" class="label">C</text>
+                        <text x="240" y="225" class="label">B</text>
+
+                        <!-- 输入耦合电容 C1 -->
+                        <line x1="80" y1="220" x2="120" y2="220" class="wire"/>
+                        <text x="80" y="210" class="label">V_in</text>
+                        <line x1="120" y1="200" x2="120" y2="240" class="wire"/>
+                        <line x1="130" y1="200" x2="130" y2="240" class="wire"/>
+                        <line x1="120" y1="220" x2="130" y2="220" class="wire"/>
+                        <text x="140" y="215" class="value">C₁</text>
+                        <text x="140" y="230" class="value">(10μF)</text>
+
+                        <!-- RB -->
+                        <line x1="130" y1="220" x2="220" y2="220" class="wire"/>
+                        <rect x="150" y="195" width="70" height="50" class="component"/>
+                        <text x="185" y="225" text-anchor="middle" class="value">R_B</text>
+                        <text x="185" y="240" text-anchor="middle" class="value">(300kΩ)</text>
+
+                        <!-- 输出耦合电容 C2 -->
+                        <line x1="275" y1="150" x2="400" y2="150" class="wire"/>
+                        <line x1="400" y1="130" x2="400" y2="170" class="wire"/>
+                        <line x1="410" y1="130" x2="410" y2="170" class="wire"/>
+                        <line x1="400" y1="150" x2="410" y2="150" class="wire"/>
+                        <text x="420" y="145" class="value">C₂</text>
+                        <text x="420" y="160" class="value">(10μF)</text>
+
+                        <!-- 负载 RL -->
+                        <line x1="410" y1="150" x2="480" y2="150" class="wire"/>
+                        <rect x="480" y="130" width="50" height="40" class="component"/>
+                        <text x="505" y="155" text-anchor="middle" class="value">R_L</text>
+                        <text x="505" y="170" text-anchor="middle" class="value">(5.1kΩ)</text>
+                        <text x="530" y="150" class="label">V_out</text>
+
+                        <!-- 地线 -->
+                        <line x1="275" y1="290" x2="275" y2="350" class="wire"/>
+                        <line x1="200" y1="350" x2="350" y2="350" class="wire" stroke-width="3"/>
+                        <line x1="210" y1="345" x2="340" y2="345" class="wire" stroke-width="2"/>
+                        <line x1="220" y1="340" x2="330" y2="340" class="wire" stroke-width="1"/>
+
+                        <!-- 波形图 -->
+                        <rect x="30" y="350" width="200" height="80" fill="rgba(100, 255, 218, 0.1)" stroke="#64ffda" rx="5"/>
+                        <text x="130" y="370" text-anchor="middle" class="value">输入输出波形</text>
+                        <!-- 输入波形 -->
+                        <path d="M 50,400 Q 80,380 110,400 Q 140,420 170,400 Q 200,380 220,400" class="waveform" opacity="0.5"/>
+                        <!-- 输出波形（反相） -->
+                        <path d="M 50,400 Q 80,420 110,400 Q 140,380 170,400 Q 200,420 220,400" class="waveform"/>
+
+                        <!-- 增益公式 -->
+                        <rect x="320" y="250" width="220" height="180" fill="rgba(233, 69, 96, 0.1)" stroke="#e94560" rx="10"/>
+                        <text x="430" y="270" text-anchor="middle" class="value" font-size="14">性能参数</text>
+                        <text x="330" y="295" class="label" font-size="12">r_be = 300 + (1+β)×26mV/I_CQ</text>
+                        <text x="330" y="320" class="label" font-size="12">A_v = -β(R_C//R_L) / r_be</text>
+                        <text x="330" y="345" class="label" font-size="12">R_i = R_B // r_be</text>
+                        <text x="330" y="370" class="label" font-size="12">R_o = R_C</text>
+                        <text x="330" y="400" class="value" font-size="12">负号表示反相！</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>电路分析步骤：</strong>
+                        <ol>
+                            <li><strong>静态分析</strong>：画直流通路，求 I_BQ、I_CQ、V_CEQ</li>
+                            <li><strong>动态分析</strong>：画交流通路（电容短路），求 A_v、R_i、R_o</li>
+                            <li><strong>判断失真</strong>：检查 Q 点是否在放大区中心</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="circuit-card">
+                    <h4>分压偏置共射放大电路</h4>
+                    <svg viewBox="0 0 550 500">
+                        <!-- VCC -->
+                        <line x1="275" y1="30" x2="275" y2="60" class="wire"/>
+                        <text x="275" y="25" text-anchor="middle" class="label">+V_CC</text>
+
+                        <!-- RC -->
+                        <line x1="275" y1="60" x2="275" y2="100" class="wire"/>
+                        <rect x="260" y="100" width="30" height="50" class="component"/>
+                        <text x="295" y="130" class="value">R_C</text>
+
+                        <!-- 三极管 -->
+                        <line x1="275" y1="150" x2="275" y2="190" class="wire"/>
+                        <circle cx="275" cy="230" r="35" class="component" fill="none"/>
+                        <line x1="250" y1="220" x2="300" y2="220" class="component" stroke-width="3"/>
+                        <line x1="300" y1="195" x2="300" y2="245" class="component" stroke-width="3"/>
+                        <polygon points="295,240 300,245 295,235" fill="#e0e0e0"/>
+
+                        <!-- RE -->
+                        <line x1="275" y1="265" x2="275" y2="300" class="wire"/>
+                        <rect x="260" y="300" width="30" height="50" class="component"/>
+                        <text x="295" y="330" class="value">R_E</text>
+
+                        <!-- 旁路电容 CE -->
+                        <line x1="275" y1="350" x2="275" y2="380" class="wire"/>
+                        <line x1="260" y1="380" x2="290" y2="380" class="wire"/>
+                        <line x1="260" y1="390" x2="290" y2="390" class="wire"/>
+                        <line x1="275" y1="380" x2="275" y2="390" class="wire"/>
+                        <text x="300" y="385" class="value">C_E</text>
+                        <text x="300" y="400" class="value">(旁路)</text>
+
+                        <!-- RB1 -->
+                        <line x1="120" y1="220" x2="220" y2="220" class="wire"/>
+                        <line x1="120" y1="60" x2="120" y2="220" class="wire"/>
+                        <line x1="275" y1="60" x2="120" y2="60" class="wire"/>
+                        <rect x="105" y="60" width="30" height="160" class="component"/>
+                        <text x="90" y="140" class="value">R_B1</text>
+
+                        <!-- RB2 -->
+                        <line x1="120" y1="220" x2="120" y2="420" class="wire"/>
+                        <rect x="105" y="220" width="30" height="120" class="component"/>
+                        <text x="90" y="280" class="value">R_B2</text>
+
+                        <!-- 输入 C1 -->
+                        <line x1="50" y1="220" x2="80" y2="220" class="wire"/>
+                        <text x="50" y="210" class="label">V_in</text>
+                        <line x1="80" y1="200" x2="80" y2="240" class="wire"/>
+                        <line x1="90" y1="200" x2="90" y2="240" class="wire"/>
+                        <line x1="80" y1="220" x2="90" y2="220" class="wire"/>
+                        <text x="100" y="215" class="value">C₁</text>
+
+                        <!-- 输出 C2 -->
+                        <line x1="275" y1="150" x2="400" y2="150" class="wire"/>
+                        <line x1="400" y1="130" x2="400" y2="170" class="wire"/>
+                        <line x1="410" y1="130" x2="410" y2="170" class="wire"/>
+                        <line x1="400" y1="150" x2="410" y2="150" class="wire"/>
+                        <text x="420" y="145" class="value">C₂</text>
+
+                        <!-- RL -->
+                        <line x1="410" y1="150" x2="480" y2="150" class="wire"/>
+                        <rect x="480" y="130" width="50" height="40" class="component"/>
+                        <text x="505" y="155" text-anchor="middle" class="value">R_L</text>
+                        <text x="530" y="150" class="label">V_out</text>
+
+                        <!-- 地线 -->
+                        <line x1="120" y1="420" x2="120" y2="460" class="wire"/>
+                        <line x1="275" y1="390" x2="275" y2="460" class="wire"/>
+                        <line x1="180" y1="460" x2="350" y2="460" class="wire" stroke-width="3"/>
+                        <line x1="190" y1="455" x2="340" y2="455" class="wire" stroke-width="2"/>
+                        <line x1="200" y1="450" x2="330" y2="450" class="wire" stroke-width="1"/>
+
+                        <!-- 标注 -->
+                        <text x="450" y="40" class="value" font-size="14">分压偏置</text>
+                        <text x="450" y="60" class="value" font-size="14">稳定 Q 点</text>
+                        <text x="450" y="80" class="label" font-size="12">C_E 旁路 R_E</text>
+                        <text x="450" y="100" class="label" font-size="12">提高交流增益</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>C_E 旁路电容的作用：</strong>
+                        <ul>
+                            <li>直流：C_E 开路，R_E 起稳定 Q 点作用</li>
+                            <li>交流：C_E 短路，R_E 被旁路，增益提高</li>
+                            <li>没有 C_E：增益会降低 (1+β)R_E/r_be 倍</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 共集电极电路 -->
+        <div id="cc-amp" class="circuit-section">
+            <h2>共集电极电路（射极跟随器）</h2>
+
+            <div class="circuit-grid">
+                <div class="circuit-card">
+                    <h4>射极跟随器电路</h4>
+                    <svg viewBox="0 0 500 400">
+                        <!-- VCC -->
+                        <line x1="250" y1="30" x2="250" y2="60" class="wire"/>
+                        <text x="250" y="25" text-anchor="middle" class="label">+V_CC</text>
+
+                        <!-- RB -->
+                        <line x1="250" y1="60" x2="250" y2="100" class="wire"/>
+                        <rect x="235" y="100" width="30" height="60" class="component"/>
+                        <text x="270" y="135" class="value">R_B</text>
+
+                        <!-- 三极管 -->
+                        <line x1="250" y1="160" x2="250" y2="190" class="wire"/>
+                        <circle cx="250" cy="230" r="35" class="component" fill="none"/>
+                        <line x1="250" y1="190" x2="250" y2="195" class="wire"/>
+                        <line x1="250" y1="265" x2="250" y2="290" class="wire"/>
+                        <line x1="225" y1="220" x2="275" y2="220" class="component" stroke-width="3"/>
+                        <line x1="275" y1="195" x2="275" y2="245" class="component" stroke-width="3"/>
+                        <polygon points="270,240 275,245 270,235" fill="#e0e0e0"/>
+                        <text x="250" y="235" text-anchor="middle" class="value">Q</text>
+
+                        <!-- 电极标注 -->
+                        <text x="250" y="295" text-anchor="middle" class="label">E</text>
+                        <text x="285" y="225" class="label">C（接VCC）</text>
+                        <text x="215" y="225" class="label">B</text>
+
+                        <!-- RE -->
+                        <line x1="250" y1="290" x2="250" y2="320" class="wire"/>
+                        <rect x="235" y="320" width="30" height="50" class="component"/>
+                        <text x="270" y="350" class="value">R_E</text>
+
+                        <!-- 输入 C1 -->
+                        <line x1="80" y1="220" x2="130" y2="220" class="wire"/>
+                        <text x="80" y="210" class="label">V_in</text>
+                        <line x1="130" y1="200" x2="130" y2="240" class="wire"/>
+                        <line x1="140" y1="200" x2="140" y2="240" class="wire"/>
+                        <line x1="130" y1="220" x2="140" y2="220" class="wire"/>
+                        <text x="150" y="215" class="value">C₁</text>
+
+                        <!-- 输出（从 RE 两端） -->
+                        <line x1="250" y1="290" x2="380" y2="290" class="wire"/>
+                        <text x="380" y="280" class="label">V_out（+）</text>
+                        <line x1="250" y1="370" x2="380" y2="370" class="wire"/>
+                        <text x="380" y="385" class="label">V_out（-）</text>
+
+                        <!-- 输出标注 -->
+                        <rect x="360" y="280" width="120" height="110" fill="rgba(100, 255, 218, 0.1)" stroke="#64ffda" rx="5"/>
+                        <text x="420" y="300" text-anchor="middle" class="value">特点：</text>
+                        <text x="420" y="320" text-anchor="middle" class="label">A_v ≈ 1（跟随）</text>
+                        <text x="420" y="340" text-anchor="middle" class="label">R_i 很高</text>
+                        <text x="420" y="360" text-anchor="middle" class="label">R_o 很低</text>
+
+                        <!-- 地线 -->
+                        <line x1="250" y1="370" x2="250" y2="390" class="wire"/>
+                        <line x1="180" y1="390" x2="320" y2="390" class="wire" stroke-width="3"/>
+                        <line x1="190" y1="385" x2="310" y2="385" class="wire" stroke-width="2"/>
+                        <line x1="200" y1="380" x2="300" y2="380" class="wire" stroke-width="1"/>
+
+                        <!-- 波形对比 -->
+                        <rect x="30" y="300" width="180" height="80" fill="rgba(233, 69, 96, 0.1)" stroke="#e94560" rx="5"/>
+                        <text x="120" y="320" text-anchor="middle" class="value">输入输出对比</text>
+                        <path d="M 50,360 Q 80,340 110,360 Q 140,380 170,360 Q 200,340 220,360" class="waveform" opacity="0.5"/>
+                        <path d="M 50,360 Q 80,342 110,360 Q 140,378 170,360 Q 200,342 220,360" class="waveform"/>
+                        <text x="120" y="395" text-anchor="middle" class="label">几乎相同（跟随）</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>为什么叫"跟随器"？</strong>
+                        <ul>
+                            <li>输出电压 ≈ 输入电压（增益 ≈ 1）</li>
+                            <li>输出"跟随"输入变化</li>
+                            <li>不放大电压，但放大电流（功率增益）</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        A_v = (1+β)(R_E//R_L) / [r_be + (1+β)(R_E//R_L)] ≈ 1<br>
+                        R_i = R_B // [r_be + (1+β)(R_E//R_L)]（很高）<br>
+                        R_o = R_E // [r_be/(1+β)]（很低）
+                    </div>
+                </div>
+
+                <div class="circuit-card">
+                    <h4>射极跟随器的应用</h4>
+                    <svg viewBox="0 0 500 350">
+                        <!-- 信号源 -->
+                        <rect x="30" y="50" width="80" height="60" class="component"/>
+                        <text x="70" y="85" text-anchor="middle" class="label">信号源</text>
+                        <text x="70" y="100" text-anchor="middle" class="value">R_s 很大</text>
+
+                        <!-- 连接线 -->
+                        <line x1="110" y1="80" x2="160" y2="80" class="wire"/>
+
+                        <!-- 射极跟随器 -->
+                        <rect x="160" y="50" width="120" height="60" fill="rgba(100, 255, 218, 0.2)" stroke="#64ffda" rx="10"/>
+                        <text x="220" y="75" text-anchor="middle" class="value">射极跟随器</text>
+                        <text x="220" y="95" text-anchor="middle" class="label">R_i 很高</text>
+
+                        <!-- 连接线 -->
+                        <line x1="280" y1="80" x2="330" y2="80" class="wire"/>
+
+                        <!-- 负载 -->
+                        <rect x="330" y="50" width="80" height="60" class="component"/>
+                        <text x="370" y="85" text-anchor="middle" class="label">负载</text>
+                        <text x="370" y="100" text-anchor="middle" class="value">R_L 很小</text>
+
+                        <!-- 说明 -->
+                        <rect x="50" y="150" width="400" height="180" fill="rgba(233, 69, 96, 0.1)" stroke="#e94560" rx="10"/>
+                        <text x="250" y="175" text-anchor="middle" class="value" font-size="16">射极跟随器的作用</text>
+
+                        <text x="70" y="200" class="label" font-size="13">1. 阻抗变换：</text>
+                        <text x="90" y="220" class="label" font-size="12">高阻信号源 → 低阻负载</text>
+
+                        <text x="70" y="250" class="label" font-size="13">2. 缓冲作用：</text>
+                        <text x="90" y="270" class="label" font-size="12">隔离前后级，减少负载效应</text>
+
+                        <text x="70" y="300" class="label" font-size="13">3. 驱动能力：</text>
+                        <text x="90" y="320" class="label" font-size="12">提供大电流驱动低阻负载</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>典型应用：</strong>
+                        <ul>
+                            <li>多级放大器的输入级（提高输入阻抗）</li>
+                            <li>多级放大器的输出级（降低输出阻抗）</li>
+                            <li>阻抗匹配（最大功率传输）</li>
+                            <li>电压表输入级（减少对被测电路的影响）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOSFET 电路 -->
+        <div id="mosfet" class="circuit-section">
+            <h2>MOSFET 放大电路</h2>
+
+            <div class="circuit-grid">
+                <div class="circuit-card">
+                    <h4>共源放大电路（N沟道增强型）</h4>
+                    <svg viewBox="0 0 500 450">
+                        <!-- VDD -->
+                        <line x1="250" y1="30" x2="250" y2="60" class="wire"/>
+                        <text x="250" y="25" text-anchor="middle" class="label">+V_DD</text>
+
+                        <!-- RD -->
+                        <line x1="250" y1="60" x2="250" y2="100" class="wire"/>
+                        <rect x="235" y="100" width="30" height="50" class="component"/>
+                        <text x="270" y="130" class="value">R_D</text>
+                        <line x1="250" y1="150" x2="250" y2="180" class="wire"/>
+
+                        <!-- MOSFET -->
+                        <!-- 衬底 -->
+                        <line x1="200" y1="250" x2="300" y2="250" class="component" stroke-width="3"/>
+                        <!-- 沟道 -->
+                        <line x1="220" y1="230" x2="220" y2="270" class="component"/>
+                        <line x1="280" y1="230" x2="280" y2="270" class="component"/>
+
+                        <!-- 栅极 -->
+                        <line x1="250" y1="180" x2="250" y2="210" class="wire"/>
+                        <line x1="220" y1="210" x2="280" y2="210" class="component" stroke-width="3"/>
+                        <line x1="250" y1="210" x2="250" y2="230" class="wire"/>
+                        <text x="250" y="200" text-anchor="middle" class="label">G</text>
+
+                        <!-- 源极 -->
+                        <line x1="220" y1="250" x2="180" y2="250" class="wire"/>
+                        <line x1="180" y1="250" x2="180" y2="350" class="wire"/>
+                        <text x="170" y="255" class="label">S</text>
+
+                        <!-- 漏极 -->
+                        <line x1="280" y1="250" x2="320" y2="250" class="wire"/>
+                        <line x1="320" y1="250" x2="320" y2="180" class="wire"/>
+                        <line x1="320" y1="180" x2="250" y2="180" class="wire"/>
+                        <text x="330" y="255" class="label">D</text>
+
+                        <!-- MOSFET 符号标注 -->
+                        <text x="250" y="290" text-anchor="middle" class="value">N-MOSFET</text>
+
+                        <!-- RG -->
+                        <line x1="100" y1="210" x2="220" y2="210" class="wire"/>
+                        <rect x="100" y="195" width="80" height="30" class="component"/>
+                        <text x="140" y="215" text-anchor="middle" class="value">R_G</text>
+
+                        <!-- 输入 C1 -->
+                        <line x1="50" y1="210" x2="70" y2="210" class="wire"/>
+                        <text x="50" y="200" class="label">V_in</text>
+                        <line x1="70" y1="190" x2="70" y2="230" class="wire"/>
+                        <line x1="80" y1="190" x2="80" y2="230" class="wire"/>
+                        <line x1="70" y1="210" x2="80" y2="210" class="wire"/>
+                        <text x="90" y="205" class="value">C₁</text>
+
+                        <!-- RS -->
+                        <line x1="180" y1="350" x2="180" y2="380" class="wire"/>
+                        <rect x="165" y="380" width="30" height="50" class="component"/>
+                        <text x="150" y="410" class="value">R_S</text>
+
+                        <!-- 输出 C2 -->
+                        <line x1="320" y1="180" x2="420" y2="180" class="wire"/>
+                        <line x1="420" y1="160" x2="420" y2="200" class="wire"/>
+                        <line x1="430" y1="160" x2="430" y2="200" class="wire"/>
+                        <line x1="420" y1="180" x2="430" y2="180" class="wire"/>
+                        <text x="440" y="175" class="value">C₂</text>
+
+                        <!-- RL -->
+                        <line x1="430" y1="180" x2="470" y2="180" class="wire"/>
+                        <rect x="470" y="160" width="50" height="40" class="component"/>
+                        <text x="495" y="185" text-anchor="middle" class="value">R_L</text>
+                        <text x="510" y="180" class="label">V_out</text>
+
+                        <!-- 地线 -->
+                        <line x1="180" y1="430" x2="180" y2="440" class="wire"/>
+                        <line x1="180" y1="440" x2="350" y2="440" class="wire" stroke-width="3"/>
+                        <line x1="190" y1="435" x2="340" y2="435" class="wire" stroke-width="2"/>
+                        <line x1="200" y1="430" x2="330" y2="430" class="wire" stroke-width="1"/>
+
+                        <!-- 标注 -->
+                        <rect x="350" y="250" width="140" height="170" fill="rgba(233, 69, 96, 0.1)" stroke="#e94560" rx="10"/>
+                        <text x="420" y="270" text-anchor="middle" class="value" font-size="13">共源特点：</text>
+                        <text x="360" y="295" class="label" font-size="12">电压放大</text>
+                        <text x="360" y="315" class="label" font-size="12">反相输出</text>
+                        <text x="360" y="335" class="label" font-size="12">R_i 极高</text>
+                        <text x="360" y="355" class="value" font-size="12">A_v = -g_m×R_D'</text>
+                        <text x="360" y="375" class="label" font-size="12">R_o = R_D</text>
+                        <text x="360" y="395" class="label" font-size="12">R_i ≈ R_G（MΩ级）</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>MOSFET vs BJT 放大电路：</strong>
+                        <ul>
+                            <li>MOSFET 输入阻抗极高（栅极几乎不取电流）</li>
+                            <li>不需要输入偏置电流，电路更简单</li>
+                            <li>跨导 g_m 通常比 BJT 的 β/r_be 小</li>
+                            <li>适合高阻信号源、集成电路</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="circuit-card">
+                    <h4>共漏放大电路（源极跟随器）</h4>
+                    <svg viewBox="0 0 500 400">
+                        <!-- VDD -->
+                        <line x1="250" y1="30" x2="250" y2="60" class="wire"/>
+                        <text x="250" y="25" text-anchor="middle" class="label">+V_DD</text>
+
+                        <!-- RG -->
+                        <line x1="250" y1="60" x2="250" y2="100" class="wire"/>
+                        <rect x="235" y="100" width="30" height="50" class="component"/>
+                        <text x="270" y="130" class="value">R_G</text>
+
+                        <!-- MOSFET -->
+                        <line x1="250" y1="150" x2="250" y2="180" class="wire"/>
+                        <line x1="200" y1="250" x2="300" y2="250" class="component" stroke-width="3"/>
+                        <line x1="220" y1="230" x2="220" y2="270" class="component"/>
+                        <line x1="280" y1="230" x2="280" y2="270" class="component"/>
+                        <line x1="250" y1="180" x2="250" y2="210" class="wire"/>
+                        <line x1="220" y1="210" x2="280" y2="210" class="component" stroke-width="3"/>
+                        <line x1="250" y1="210" x2="250" y2="230" class="wire"/>
+                        <text x="250" y="200" text-anchor="middle" class="label">G</text>
+
+                        <!-- 源极输出 -->
+                        <line x1="220" y1="250" x2="180" y2="250" class="wire"/>
+                        <line x1="180" y1="250" x2="180" y2="320" class="wire"/>
+                        <text x="170" y="255" class="label">S</text>
+
+                        <!-- 漏极接 VDD -->
+                        <line x1="280" y1="250" x2="320" y2="250" class="wire"/>
+                        <line x1="320" y1="250" x2="320" y2="60" class="wire"/>
+                        <line x1="320" y1="60" x2="250" y2="60" class="wire"/>
+                        <text x="330" y="255" class="label">D（接VDD）</text>
+
+                        <!-- RS -->
+                        <line x1="180" y1="320" x2="180" y2="350" class="wire"/>
+                        <rect x="165" y="350" width="30" height="40" class="component"/>
+                        <text x="150" y="375" class="value">R_S</text>
+
+                        <!-- 输出 -->
+                        <line x1="180" y1="320" x2="380" y2="320" class="wire"/>
+                        <text x="380" y="310" class="label">V_out</text>
+
+                        <!-- 地线 -->
+                        <line x1="180" y1="390" x2="180" y2="400" class="wire"/>
+                        <line x1="120" y1="400" x2="350" y2="400" class="wire" stroke-width="3"/>
+
+                        <!-- 特点 -->
+                        <rect x="350" y="150" width="140" height="150" fill="rgba(100, 255, 218, 0.1)" stroke="#64ffda" rx="10"/>
+                        <text x="420" y="170" text-anchor="middle" class="value">源极跟随器</text>
+                        <text x="360" y="195" class="label">A_v ≈ 1</text>
+                        <text x="360" y="215" class="label">R_i 极高</text>
+                        <text x="360" y="235" class="label">R_o 很低</text>
+                        <text x="360" y="255" class="label">类似射极跟随器</text>
+                        <text x="360" y="275" class="value">但输入阻抗更高</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>源极跟随器 vs 射极跟随器：</strong>
+                        <ul>
+                            <li>两者功能类似：电压跟随、阻抗变换</li>
+                            <li>源极跟随器输入阻抗更高（栅极不取电流）</li>
+                            <li>源极跟随器输出阻抗可能稍高</li>
+                            <li>选择取决于具体应用和信号源特性</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 电源电路 -->
+        <div id="power" class="circuit-section">
+            <h2>电源电路</h2>
+
+            <div class="circuit-grid">
+                <div class="circuit-card">
+                    <h4>线性稳压电源</h4>
+                    <svg viewBox="0 0 600 350">
+                        <!-- 变压器 -->
+                        <rect x="30" y="100" width="80" height="150" class="component"/>
+                        <text x="70" y="170" text-anchor="middle" class="label">变压器</text>
+                        <text x="70" y="190" text-anchor="middle" class="value">220V→12V</text>
+                        <line x1="30" y1="80" x2="30" y2="100" class="wire"/>
+                        <line x1="110" y1="100" x2="110" y2="250" class="wire"/>
+                        <text x="30" y="75" class="label">AC 220V</text>
+
+                        <!-- 整流桥 -->
+                        <rect x="140" y="100" width="80" height="150" fill="rgba(233, 69, 96, 0.2)" stroke="#e94560" rx="5"/>
+                        <text x="180" y="170" text-anchor="middle" class="value">桥式</text>
+                        <text x="180" y="190" text-anchor="middle" class="value">整流</text>
+                        <line x1="110" y1="150" x2="140" y2="150" class="wire"/>
+                        <line x1="110" y1="200" x2="140" y2="200" class="wire"/>
+                        <line x1="220" y1="150" x2="260" y2="150" class="wire"/>
+                        <line x1="220" y1="200" x2="260" y2="200" class="wire"/>
+
+                        <!-- 滤波电容 -->
+                        <line x1="260" y1="150" x2="260" y2="130" class="wire"/>
+                        <line x1="245" y1="130" x2="275" y2="130" class="wire"/>
+                        <line x1="245" y1="140" x2="275" y2="140" class="wire"/>
+                        <line x1="260" y1="130" x2="260" y2="140" class="wire"/>
+                        <text x="280" y="135" class="value">C₁</text>
+                        <text x="280" y="150" class="value">滤波</text>
+
+                        <!-- 稳压器 -->
+                        <rect x="310" y="100" width="100" height="150" fill="rgba(100, 255, 218, 0.2)" stroke="#64ffda" rx="5"/>
+                        <text x="360" y="160" text-anchor="middle" class="value">三端</text>
+                        <text x="360" y="180" text-anchor="middle" class="value">稳压器</text>
+                        <text x="360" y="200" text-anchor="middle" class="value">（如7812）</text>
+                        <line x1="260" y1="150" x2="310" y2="150" class="wire"/>
+                        <line x1="260" y1="200" x2="310" y2="200" class="wire"/>
+                        <line x1="410" y1="150" x2="460" y2="150" class="wire"/>
+                        <line x1="410" y1="200" x2="460" y2="200" class="wire"/>
+
+                        <!-- 输出滤波 -->
+                        <line x1="460" y1="150" x2="460" y2="130" class="wire"/>
+                        <line x1="445" y1="130" x2="475" y2="130" class="wire"/>
+                        <line x1="445" y1="140" x2="475" y2="140" class="wire"/>
+                        <line x1="460" y1="130" x2="460" y2="140" class="wire"/>
+                        <text x="480" y="135" class="value">C₂</text>
+
+                        <!-- 输出 -->
+                        <line x1="460" y1="150" x2="540" y2="150" class="wire"/>
+                        <text x="540" y="140" class="label">+12V 稳定输出</text>
+
+                        <!-- 地线 -->
+                        <line x1="260" y1="200" x2="260" y2="300" class="wire"/>
+                        <line x1="460" y1="200" x2="460" y2="300" class="wire"/>
+                        <line x1="200" y1="300" x2="520" y2="300" class="wire" stroke-width="3"/>
+                        <line x1="210" y1="295" x2="510" y2="295" class="wire" stroke-width="2"/>
+                        <line x1="220" y1="290" x2="500" y2="290" class="wire" stroke-width="1"/>
+
+                        <!-- 流程标注 -->
+                        <text x="70" y="290" text-anchor="middle" class="value">① 降压</text>
+                        <text x="180" y="290" text-anchor="middle" class="value">② 整流</text>
+                        <text x="260" y="280" text-anchor="middle" class="value">③ 滤波</text>
+                        <text x="360" y="290" text-anchor="middle" class="value">④ 稳压</text>
+                        <text x="460" y="280" text-anchor="middle" class="value">⑤ 输出</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>线性稳压电源流程：</strong>
+                        <ol>
+                            <li><strong>变压器</strong>：将 220V 交流降压到合适电压</li>
+                            <li><strong>整流</strong>：桥式整流将交流变成脉动直流</li>
+                            <li><strong>滤波</strong>：电容滤波平滑脉动</li>
+                            <li><strong>稳压</strong>：三端稳压器输出稳定直流</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="circuit-card">
+                    <h4>开关稳压电源（Buck 降压）</h4>
+                    <svg viewBox="0 0 550 350">
+                        <!-- 输入 -->
+                        <line x1="30" y1="100" x2="100" y2="100" class="wire"/>
+                        <text x="30" y="90" class="label">V_in (12V)</text>
+
+                        <!-- 开关管 -->
+                        <rect x="100" y="80" width="60" height="40" fill="rgba(233, 69, 96, 0.3)" stroke="#e94560" rx="5"/>
+                        <text x="130" y="105" text-anchor="middle" class="value">MOSFET</text>
+                        <text x="130" y="120" text-anchor="middle" class="value">开关</text>
+
+                        <!-- 二极管 -->
+                        <line x1="160" y1="100" x2="220" y2="100" class="wire"/>
+                        <polygon points="220,80 220,120 250,100" class="component"/>
+                        <line x1="250" y1="80" x2="250" y2="120" class="component"/>
+                        <text x="235" y="70" text-anchor="middle" class="value">续流二极管</text>
+
+                        <!-- 电感 -->
+                        <line x1="160" y1="100" x2="160" y2="180" class="wire"/>
+                        <path d="M 160,180 C 170,170 180,190 190,180 C 200,170 210,190 220,180 C 230,170 240,190 250,180" class="component"/>
+                        <line x1="250" y1="180" x2="250" y2="220" class="wire"/>
+                        <text x="210" y="210" text-anchor="middle" class="value">L（电感）</text>
+
+                        <!-- 电容 -->
+                        <line x1="250" y1="220" x2="250" y2="250" class="wire"/>
+                        <line x1="235" y1="250" x2="265" y2="250" class="wire"/>
+                        <line x1="235" y1="260" x2="265" y2="260" class="wire"/>
+                        <line x1="250" y1="250" x2="250" y2="260" class="wire"/>
+                        <text x="270" y="255" class="value">C</text>
+
+                        <!-- 输出 -->
+                        <line x1="250" y1="220" x2="380" y2="220" class="wire"/>
+                        <text x="380" y="210" class="label">V_out (5V)</text>
+
+                        <!-- 负载 -->
+                        <rect x="380" y="200" width="60" height="40" class="component"/>
+                        <text x="410" y="225" text-anchor="middle" class="label">R_L</text>
+
+                        <!-- 地线 -->
+                        <line x1="30" y1="280" x2="450" y2="280" class="wire" stroke-width="3"/>
+                        <line x1="250" y1="260" x2="250" y2="280" class="wire"/>
+                        <line x1="410" y1="240" x2="410" y2="280" class="wire"/>
+
+                        <!-- 控制电路 -->
+                        <rect x="300" y="80" width="120" height="80" fill="rgba(100, 255, 218, 0.1)" stroke="#64ffda" rx="10"/>
+                        <text x="360" y="110" text-anchor="middle" class="value">PWM 控制</text>
+                        <text x="360" y="130" text-anchor="middle" class="value">占空比 D</text>
+                        <text x="360" y="150" text-anchor="middle" class="label">V_out = D × V_in</text>
+
+                        <!-- 优势对比 -->
+                        <rect x="30" y="300" width="500" height="40" fill="rgba(233, 69, 96, 0.1)" stroke="#e94560" rx="5"/>
+                        <text x="280" y="325" text-anchor="middle" class="value">效率高（85%~95%）| 体积小 | 但有开关噪声</text>
+                    </svg>
+
+                    <div class="explanation">
+                        <strong>Buck 降压原理：</strong>
+                        <ul>
+                            <li>MOSFET 导通时：电流流过电感，电感储能</li>
+                            <li>MOSFET 截止时：电感释放能量，通过续流二极管形成回路</li>
+                            <li>通过 PWM 控制占空比 D，调节输出电压</li>
+                            <li>V_out = D × V_in（D 为占空比）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer style="text-align: center; padding: 30px; color: #8892b0;">
+            <p>模电电路原理图学习工具 | 持续更新中</p>
+            <p style="margin-top: 10px;">点击不同电路卡片查看详细原理图和动画演示</p>
+        </footer>
+    </div>
+
+    <script>
+        // 切换显示部分
+        function showSection(sectionId) {
+            // 隐藏所有部分
+            document.querySelectorAll('.circuit-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // 显示目标部分
+            document.getElementById(sectionId).classList.add('active');
+
+            // 更新导航卡片状态
+            document.querySelectorAll('.nav-card').forEach(card => {
+                card.classList.remove('active');
+            });
+
+            // 找到对应的导航卡片并激活
+            const navCards = document.querySelectorAll('.nav-card');
+            const sectionIds = ['diode', 'bjt-bias', 'ce-amp', 'cc-amp', 'mosfet', 'power'];
+            const index = sectionIds.indexOf(sectionId);
+            if (index !== -1 && navCards[index]) {
+                navCards[index].classList.add('active');
+            }
+
+            // 滚动到顶部
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认显示第一个部分
+            showSection('diode');
+
+            // 为所有 SVG 添加交互效果
+            document.querySelectorAll('svg').forEach(svg => {
+                svg.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.02)';
+                    this.style.transition = 'transform 0.3s ease';
+                });
+
+                svg.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+
+            // 为电路卡片添加悬停效果
+            document.querySelectorAll('.circuit-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 10px 30px rgba(233, 69, 96, 0.3)';
+                    this.style.transition = 'all 0.3s ease';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
+            });
+        });
+
+        // 添加键盘导航
+        document.addEventListener('keydown', function(e) {
+            const sections = ['diode', 'bjt-bias', 'ce-amp', 'cc-amp', 'mosfet', 'power'];
+            const currentActive = document.querySelector('.circuit-section.active');
+            const currentIndex = sections.indexOf(currentActive.id);
+
+            let newIndex;
+            switch(e.key) {
+                case 'ArrowRight':
+                case 'ArrowDown':
+                    newIndex = (currentIndex + 1) % sections.length;
+                    break;
+                case 'ArrowLeft':
+                case 'ArrowUp':
+                    newIndex = (currentIndex - 1 + sections.length) % sections.length;
+                    break;
+                case 'Home':
+                    newIndex = 0;
+                    break;
+                case 'End':
+                    newIndex = sections.length - 1;
+                    break;
+                default:
+                    return;
+            }
+
+            e.preventDefault();
+            showSection(sections[newIndex]);
+        });
+
+        // 添加触摸滑动支持
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            // 只有水平滑动距离大于垂直滑动距离时才触发
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                const sections = ['diode', 'bjt-bias', 'ce-amp', 'cc-amp', 'mosfet', 'power'];
+                const currentActive = document.querySelector('.circuit-section.active');
+                const currentIndex = sections.indexOf(currentActive.id);
+
+                let newIndex;
+                if (diffX > 0) {
+                    // 向左滑动，下一个
+                    newIndex = (currentIndex + 1) % sections.length;
+                } else {
+                    // 向右滑动，上一个
+                    newIndex = (currentIndex - 1 + sections.length) % sections.length;
+                }
+
+                showSection(sections[newIndex]);
+            }
+        });
+
+        // 自动高亮当前查看的电路
+        function highlightCircuit(element) {
+            // 移除所有高亮
+            document.querySelectorAll('.circuit-card').forEach(card => {
+                card.style.borderColor = 'rgba(255,255,255,0.1)';
+            });
+
+            // 添加高亮
+            element.style.borderColor = '#e94560';
+        }
+
+        // 为每个电路卡片添加点击事件
+        document.querySelectorAll('.circuit-card').forEach(card => {
+            card.addEventListener('click', function() {
+                highlightCircuit(this);
+            });
+        });
+
+        // 添加工具提示
+        document.querySelectorAll('.formula, .explanation').forEach(element => {
+            element.title = '点击查看详细说明';
+            element.style.cursor = 'pointer';
+
+            element.addEventListener('click', function() {
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+
+        // 响应式调整
+        function adjustLayout() {
+            const width = window.innerWidth;
+            const circuitGrids = document.querySelectorAll('.circuit-grid');
+
+            if (width < 768) {
+                circuitGrids.forEach(grid => {
+                    grid.style.gridTemplateColumns = '1fr';
+                });
+            } else {
+                circuitGrids.forEach(grid => {
+                    grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(400px, 1fr))';
+                });
+            }
+        }
+
+        window.addEventListener('resize', adjustLayout);
+        adjustLayout();
+    </script>
+</body>
+</html>
